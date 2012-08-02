@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PREFIX="/home/brian"
+
+case "$1" in
+    connect)
+        if [ ! -d "$PREFIX/Client_Archive" ]; then
+            mkdir "$PREFIX/Client_Archive"
+        fi
+
+        if [ ! -d $PREFIX"/Clients" ]; then
+            mkdir "$PREFIX/Clients"
+        fi
+
+        if [ ! -d $PREFIX"/CLift" ]; then
+            mkdir "$PREFIX/CLift"
+        fi
+
+        if [ ! -d $PREFIX"/LIFTER_Drops" ]; then
+            mkdir "$PREFIX/LIFTER_Drops"
+        fi
+
+        sudo mount -t cifs //192.168.10.10/Client\ Archive Client_Archive -o credentials=/home/brian/.credentials,rw,uid=1000,gid=100
+        sudo mount -t cifs //192.168.10.10/Clients Clients -o credentials=/home/brian/.credentials,rw,uid=1000,gid=100
+        sudo mount -t cifs //192.168.10.10/CLift CLift -o credentials=/home/brian/.credentials,rw,uid=1000,gid=100
+        sudo mount -t cifs //192.168.10.10/LIFTER_Drops LIFTER_Drops -o credentials=/home/brian/.credentials,rw,uid=1000,gid=100
+        ;;
+
+    disconnect)
+        sudo umount Client_Archive
+        sudo umount Clients
+        sudo umount CLift
+        sudo umount LIFTER_Drops
+        ;;
+
+    *)
+        echo "usage: $0 {connect|disconnect}"
+        ;;
+esac
+exit 0

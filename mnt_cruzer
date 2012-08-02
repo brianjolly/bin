@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# ENV vars from udev
+# $SUBSYSTEM
+# $ACTION add | remove
+mount /dev/cruzer /home/brian/cruzer

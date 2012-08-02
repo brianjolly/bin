@@ -1,0 +1,14 @@
+#!/bin/bash
+
+case "$1" in
+    lock)
+        echo 1 > /proc/sys/dev/cdrom/lock
+        ;;
+    unlock)
+        echo 0 > /proc/sys/dev/cdrom/lock
+        ;;
+    *)
+        echo "Usage {lock|unlock}"
+        ;;
+esac
+exit 0

@@ -1,0 +1,8 @@
+ #!/bin/bash
+
+PORT=9090
+sudo ~/tools/android-sdk-linux/platform-tools/adb kill-server
+sudo ~/tools/android-sdk-linux/platform-tools/adb start-server
+~/tools/android-sdk-linux/platform-tools/adb forward tcp:$PORT tcp:$PORT
+
+echo "Proxy port is $PORT"

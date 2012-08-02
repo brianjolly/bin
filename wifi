@@ -1,0 +1,42 @@
+#!/bin/bash
+
+ESSID=$1
+INTERFACE=$3
+
+if [ -z "$ESSID" ]; then
+    echo "Please enter the {ESSID} to connect or 'reset {ESSID}'"
+    exit 1
+fi
+
+if [ -z "$INTERFACE" ]; then
+    INTERFACE='wlan0'
+fi
+
+case "$1" in
+    kill)
+        sudo dhcpcd -k $INTERFACE
+        ;;
+    dhcp)
+        sudo dhcpcd $INTERFACE
+        ;;
+    reset)
+        sudo dhcpcd -k $INTERFACE
+        echo "Connecting to '$2'"
+        sudo ip link set $INTERFACE down &&
+        sudo iwconfig $INTERFACE mode managed &&
+        sudo iwconfig $INTERFACE channel auto &&
+        sudo iwconfig $INTERFACE essid "$2" &&
+        sudo ip link set $INTERFACE up &&
+        sudo dhcpcd -A $INTERFACE
+        ;;
+    *)
+        echo "Connecting to $ESSID"
+        sudo ip link set $INTERFACE down &&
+        sudo iwconfig $INTERFACE mode managed &&
+        sudo iwconfig $INTERFACE channel auto &&
+        sudo iwconfig $INTERFACE essid "'$ESSID'" &&
+        sudo ip link set $INTERFACE up &&
+        sudo dhcpcd --rebind $INTERFACE
+        ;;
+esac
+exit 0

@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+while true
+  #status = ` iwconfig | grep 'Link Quality'`
+  IO.popen("iwconfig | grep 'Link Quality'").each do |line|
+    parts = line.match(/=(\d*)\/(\d*)/)
+    total = 70.0
+    quality = parts[1]
+    percent = quality.to_f / total
+    num = (percent * 10).to_i
+
+    p_percent = ((percent * 10000).to_i)/100
+
+    non_num = 10-num
+
+    bar = ':'
+    bars = ''
+
+    dot = '.'
+    dots = ''
+
+    num.times { |x| bars = bars+bar }
+
+    non_num.times { |x| dots = dots+dot }
+
+    puts "#{bars}#{dots} #{p_percent}% #{line}"
+  end
+
+  sleep 2
+end

@@ -1,0 +1,84 @@
+#!/bin/sh
+# flickr-get, version 0.5.
+#
+# Downloads entire flickr photostreams with the help of wget.
+# This is somewhat hacky, and will probably break when flickr
+# changes its website layout.
+#
+# Licenced under the Public Domain or whatever.
+
+# Temporary directory location.
+tempdir=".flickr-get.$$"
+
+# Check for command-line arguments.
+if [ -z "$1" ]
+then
+echo "Usage: $0 [flickr-url] [cookies-file]"
+exit 1
+fi
+
+# Check if [cookies-file] was specified. If it was, set $cookies to the
+# absolute path of the cookies file.
+if [ -n "$2" ]
+then
+cd "`dirname "$2"`"
+cookies="`pwd`/`basename "$2"`"
+cd "$OLDPWD"
+fi
+
+mkdir $tempdir
+cd $tempdir
+
+# Download first page, check if it returns a photo-gallery. If not, retry
+# with the use of a cookies file (if specified).
+wget -q -E "$1/page1"
+grep photo_container page1.html &>/dev/null
+if [ $? -eq 1 ]
+then
+if [ -e "$cookies" ]
+then
+wget_cookies="--load-cookies "$cookies""
+rm page1.html
+wget -q -E $wget_cookies "$1/page1"
+else
+echo -e "\033[1mDownloading this photostream requires a valid cookies.txt file.\033[0m"
+rm -Rf $tempdir
+exit 1
+fi
+fi
+
+# Find the last page in a photostream.
+lastpage=`grep -A 2 '<span class="break">...</span>' page1.html | tail -1 | cut -d">" -f2 | cut -d"<" -f1`
+
+# Start downloading all pages up to the last one. Cookies will be used
+# if they were needed for the first page.
+echo -e "\033[1mDownloading temporary files...\033[0m"
+for i in `seq 2 $lastpage`
+do
+wget -q -E $wget_cookies "$1/page$i"
+done
+
+# Extract a list of photo URLs, removing the size specification (along
+# with the extension) and dumping the resulting list in 'flickr-photos'.
+grep -h photo_container *.html | cut -d'"' -f8 | sed 's/_m.jpg//' > flickr-photos
+
+cd "$OLDPWD"
+
+# Start downloading photos, first trying for original (or large) size
+# images and moving to medium size images if the originals are unavailable.
+echo -e "\033[1mDownloading photos...\033[0m"
+for i in `cat $tempdir/flickr-photos`
+do
+wget -q -nc "${i}_b.jpg"
+if [ -f "photo_unavailable.gif" ]
+then
+rm "photo_unavailable.gif"
+wget -q -nc "${i}_z.jpg"
+fi
+done
+
+# Clean up and exit.
+rm -Rf $tempdir
+echo -e "\033[1mDone!\033[0m"
+
+exit 0
